@@ -53,15 +53,19 @@ public class WorkerStartupLatch {
                     Thread.currentThread().interrupt();
                 }
                 System.out.printf("[worker-%d] ready — calling countDown()%n", id);
+
+                synchronized (startedNames) {
+                      startedNames.add(Thread.currentThread().getName());
+                     }
                 ready.countDown();
             }, "worker-" + i).start();
         }
 
 
         // TODO: make the calling thread wait here until every worker has signalled
-
+        ready.await();
         // TODO: mark the startup phase as complete
-          ready.await();
+        allStarted = true;
         }
     /** Returns {@code true} once all workers have called {@code countDown()}. */
     public boolean isAllStarted() {

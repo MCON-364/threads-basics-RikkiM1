@@ -102,7 +102,7 @@ public class ExecutorTaskManager {
         //       returns it when done — return the Future the pool gives you back
         Future<Task> future = pool.submit(() -> {
             Thread.sleep(10);
-
+            recordCompleted(task);
             return task;
         });
         return future;
