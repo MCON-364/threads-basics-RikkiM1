@@ -27,7 +27,6 @@ public class PrinterRoom {
     private final int printerCount;
     // TODO: declare a private final Semaphore field
     private final Semaphore semaphore;
-
     // counters visible to tests
     private final AtomicInteger activeCount   = new AtomicInteger(0);
     private final AtomicInteger maxObserved   = new AtomicInteger(0);
@@ -35,9 +34,7 @@ public class PrinterRoom {
 
     public PrinterRoom(int printerCount) {
         this.printerCount = printerCount;
-        // TODO: initialise the semaphore so that exactly printerCount threads
-        //       may be inside print() at the same time
-        this.semaphore = null;
+        this.semaphore = new Semaphore(printerCount);  // initialize with printerCount permits
     }
 
     /**
@@ -49,19 +46,25 @@ public class PrinterRoom {
     public void print(String document) throws InterruptedException {
         // TODO: block here until a printer permit is available
 
+semaphore.acquire();
         try {
-            // TODO: record that one more job is now active, then update the
-            //       high-water mark if the new active count is a new maximum
 
-            // Simulate printing time
+            int currentActive = activeCount.incrementAndGet();
+
+            maxObserved.updateAndGet(prevMax -> Math.max(prevMax, currentActive));
+
             Thread.sleep(50);
 
-            // TODO: record that this job has finished
+            completedJobs.incrementAndGet();
+
         } finally {
             // TODO: signal that one more printer is free again — do this even
             //       if an exception was thrown, and update the active count
+            activeCount.decrementAndGet();
+            semaphore.release();
         }
     }
+
 
     /** Returns the number of currently active print jobs. */
     public int getActiveCount() { return activeCount.get(); }

@@ -46,6 +46,19 @@ public class PeriodicLogger {
         // TODO: create a daemon thread named "periodic-logger" that
         //       sleeps for intervalMs then appends "tick N" (1-based) to log,
         //       repeating 'ticks' times total, then starts it.
+        worker = new Thread(() -> {
+            for (int i = 1; i <= ticks; i++) {
+                try {
+                    Thread.sleep(intervalMs);
+                } catch (InterruptedException e) {
+                    break;
+                }
+                log.add("tick " + i);
+            }
+        });
+        worker.setDaemon(true);
+        worker.setName("periodic-logger");
+        worker.start();
     }
 
     /**
@@ -53,7 +66,7 @@ public class PeriodicLogger {
      */
     public boolean isRunning() {
         // TODO: return whether the worker thread is alive
-        return false;
+        return worker != null && worker.isAlive();
     }
 
     /**
@@ -61,11 +74,16 @@ public class PeriodicLogger {
      */
     public void awaitCompletion() throws InterruptedException {
         // TODO: join the worker thread
+        if (worker != null) {
+            worker.join();
+        }
     }
+
 
     /** Returns the log messages collected so far. */
     public java.util.List<String> getLog() {
         return java.util.Collections.unmodifiableList(log);
     }
+
 }
 
